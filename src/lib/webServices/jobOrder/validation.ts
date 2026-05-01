@@ -48,6 +48,7 @@ export function validateJobOrder(order: JobOrder): ValidationIssue[] {
   }
 
   if (!order.clientName.trim()) issues.push({ field: "clientName", message: "Client name is required.", severity: "error" });
+  if (!String(order.twid || "").trim()) issues.push({ field: "twid", message: "TempWorks ID is required.", severity: "error" });
   if (!order.projectName.trim()) issues.push({ field: "projectName", message: "Project name is required.", severity: "error" });
   if (!order.jobSite.address.trim()) issues.push({ field: "jobSite.address", message: "Job site address is required.", severity: "error" });
   if (!order.contacts.primary.name.trim()) issues.push({ field: "contacts.primary.name", message: "Primary contact name is required.", severity: "error" });

@@ -202,7 +202,7 @@ export function createEmptyJobOrder(): JobOrder {
     ],
     financial: {
       payStructure: "single",
-      inputMode: "bill",
+      inputMode: "markup",
       payRate: undefined,
       billRate: undefined,
       markupMultiplier: undefined,
