@@ -2664,7 +2664,7 @@ export function JobOrderFormWizard(props: {
                   <input data-field="compliance.cipWrap.insuranceCertificateAttached" type="checkbox" checked={Boolean(order.compliance.cipWrap.insuranceCertificateAttached)} onChange={(e) => updateOrder((p) => ({ ...p, compliance: { ...p.compliance, cipWrap: { ...p.compliance.cipWrap, insuranceCertificateAttached: e.target.checked } } }))} /> Insurance certificate example attached (if available)
                 </label>
                 <label className="crm-sub" style={{ display: "block", marginTop: 6 }}>Upload Insurance Certificate Example (if available)</label>
-                <input type="file" accept="application/pdf,image/*" capture="environment" onChange={(e) => setUploads((u) => ({ ...u, cipInsuranceCertificate: e.target.files?.[0] || null }))} />
+                <input type="file" accept="application/pdf,image/*" onChange={(e) => setUploads((u) => ({ ...u, cipInsuranceCertificate: e.target.files?.[0] || null }))} />
               </>
             ) : null}
           </div>
@@ -2715,7 +2715,7 @@ export function JobOrderFormWizard(props: {
                   <input data-field="compliance.prevailingWage.wageDeterminationNotes" className="crm-input" placeholder="Note" value={order.compliance.prevailingWage.wageDeterminationNotes || ""} onChange={(e) => updateOrder((p) => ({ ...p, compliance: { ...p.compliance, prevailingWage: { ...p.compliance.prevailingWage, wageDeterminationNotes: e.target.value } } }))} />
                 </div>
                 <label className="crm-sub" style={{ display: "block", marginTop: 6 }}>Upload Wage Determination Sheet (or scan)</label>
-                <input type="file" accept="application/pdf,image/*" capture="environment" onChange={(e) => setUploads((u) => ({ ...u, wageSheet: e.target.files?.[0] || null }))} />
+                <input type="file" accept="application/pdf,image/*" onChange={(e) => setUploads((u) => ({ ...u, wageSheet: e.target.files?.[0] || null }))} />
               </>
             ) : null}
           </div>
