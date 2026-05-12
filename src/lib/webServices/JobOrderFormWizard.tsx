@@ -860,12 +860,13 @@ export function JobOrderFormWizard(props: {
         .replace(/[^a-z0-9]+/gi, "_")
         .replace(/^_+|_+$/g, "")
         .slice(0, 24) || "no_twid";
+      const submissionToken = `${Date.now()}_${Math.floor(Math.random() * 100000)}`;
 
       const localPdfUrl = await generateLocalPdfUrl(order, uploads);
       const localPdfBlob = await fetch(localPdfUrl).then((res) => res.blob());
       const generatedPdf = new File(
         [localPdfBlob],
-        `TalentCorps_${orderTypeSlug(order.orderType)}_${cleanTwid}_${cleanClientName}.pdf`,
+        `TalentCorps_${orderTypeSlug(order.orderType)}_${cleanTwid}_${cleanClientName}_${submissionToken}.pdf`,
         { type: "application/pdf" }
       );
 
@@ -1128,6 +1129,8 @@ export function JobOrderFormWizard(props: {
       ["Request Badge", pdfRequestTypeBadge],
       ["Existing Job Order", nextOrder.parentJobOrderId || "-"],
       ["Existing Site", nextOrder.existingSiteReference || "-"],
+      ["Sales Team Member", nextOrder.internal.salesTeamMember || "-"],
+      ["Branch", nextOrder.internal.branch || "-"],
       ["End Date", nextOrder.endDate || "-"],
     ]);
 
@@ -1309,30 +1312,6 @@ export function JobOrderFormWizard(props: {
       y = 758;
     };
 
-    for (const { file, key } of filesToAppend) {
-      const label = file.name || key;
-      try {
-        if (isPdfFile(file)) {
-          await appendPdfAttachment(file, `Attachment: ${label}`);
-          continue;
-        }
-        if (isImageFile(file)) {
-          await appendImageAttachment(file, `Attachment: ${label}`);
-          continue;
-        }
-        unsupportedAttachments.push(label);
-      } catch {
-        unsupportedAttachments.push(label);
-      }
-    }
-
-    if (unsupportedAttachments.length > 0) {
-      drawTextAttachment(
-        "Attachment Note",
-        `The following uploaded files were not appended to this PDF because their formats are not directly supported in-browser: ${unsupportedAttachments.join(", ")}.`
-      );
-    }
-
     drawSection("Compliance & Onboarding", [
       ["CIP / Wrap", nextOrder.compliance.cipWrap.enabled ? "Yes" : "No"],
       [
@@ -1456,6 +1435,31 @@ export function JobOrderFormWizard(props: {
       });
     }
     y -= mapPanelHeight + 8;
+
+    // Always append uploaded files last so they appear at the end of the PDF.
+    for (const { file, key } of filesToAppend) {
+      const label = file.name || key;
+      try {
+        if (isPdfFile(file)) {
+          await appendPdfAttachment(file, `Attachment: ${label}`);
+          continue;
+        }
+        if (isImageFile(file)) {
+          await appendImageAttachment(file, `Attachment: ${label}`);
+          continue;
+        }
+        unsupportedAttachments.push(label);
+      } catch {
+        unsupportedAttachments.push(label);
+      }
+    }
+
+    if (unsupportedAttachments.length > 0) {
+      drawTextAttachment(
+        "Attachment Note",
+        `The following uploaded files were not appended to this PDF because their formats are not directly supported in-browser: ${unsupportedAttachments.join(", ")}.`
+      );
+    }
 
     const bytes = await pdf.save();
     const normalizedBytes = Uint8Array.from(bytes);
