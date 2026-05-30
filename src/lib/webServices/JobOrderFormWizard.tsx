@@ -64,7 +64,6 @@ const SALES_TEAM_MEMBER_OPTIONS = [
   "Mitchell Cummings",
   "Chad Gibson",
   "Jared Schock",
-  "Kevin O'Banyoun",
   "Kelly Smith",
   "Eric Stegman",
   "Cameron Mecca",
@@ -73,6 +72,8 @@ const SALES_TEAM_MEMBER_OPTIONS = [
   "Megan Waters",
   "Rebekah Guillory",
   "Kevin Owens",
+  "Trevor Hodgins",
+  "Ronald Smith",
 ];
 const BRANCH_OPTIONS = [
   "Atlanta",
