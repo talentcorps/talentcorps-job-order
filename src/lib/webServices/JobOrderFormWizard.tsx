@@ -1528,12 +1528,20 @@ export function JobOrderFormWizard(props: {
             backgroundImage: `linear-gradient(135deg, rgba(7,18,42,.88), rgba(11,35,83,.72)), url(${heroImageUrl})`,
           }}
         >
-          <img
-            src={brandLogoSrc}
-            alt="Talent Corps"
-            className="job-order-hero-logo"
-            onError={() => setBrandLogoSrc("/assets/company-logo.svg")}
-          />
+          <a
+            href="https://home.talentcorps.com/"
+            style={{ display: "inline-flex", opacity: 1, transition: "opacity 0.15s" }}
+            title="Go to TalentCorps Home"
+            onMouseEnter={e => (e.currentTarget.style.opacity = "0.75")}
+            onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+          >
+            <img
+              src={brandLogoSrc}
+              alt="Talent Corps"
+              className="job-order-hero-logo"
+              onError={() => setBrandLogoSrc("/assets/company-logo.svg")}
+            />
+          </a>
           <div>
             <p className="job-order-kicker">Talent Corps Web Services</p>
             <h1 className="job-order-hero-title">Job Order Command Center</h1>
@@ -1545,6 +1553,23 @@ export function JobOrderFormWizard(props: {
           <h2 className="crm-title" style={{ fontSize: 24, marginBottom: 6 }}>Job Order Form</h2>
           <p className="crm-sub" style={{ margin: 0 }}>Mobile-first guided intake for field sales managers.</p>
         </div>
+        <a
+          href="https://home.talentcorps.com/"
+          style={{
+            fontSize: 12,
+            color: "var(--sub)",
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            paddingTop: 4,
+            whiteSpace: "nowrap",
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = "var(--primary)")}
+          onMouseLeave={e => (e.currentTarget.style.color = "var(--sub)")}
+        >
+          ← Home
+        </a>
       </div>
 
       <div className="order-type-badge-row" style={{ marginBottom: 10 }}>
