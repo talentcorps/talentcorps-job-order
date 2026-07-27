@@ -2,11 +2,23 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "talentcorps-job-order",
   "compatibility_date": "2026-05-16",
+  "main": "src/worker.ts",
   "observability": {
     "enabled": true
   },
   "assets": {
-    "not_found_handling": "single-page-application"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    // The worker owns POST /submit only; every other path is served straight
+    // from the static SPA build. Without run_worker_first the asset router
+    // answers /submit with the SPA fallback before the worker ever runs.
+    "run_worker_first": ["/submit"]
+  },
+  "vars": {
+    // The recruiting dashboard's secret-gated intake endpoint. Not a secret —
+    // it is useless without RECRUITING_INTAKE_SECRET, which is set out of band
+    // with `wrangler secret put RECRUITING_INTAKE_SECRET`.
+    "RECRUITING_INTAKE_URL": "https://recruiting.talentcorps.com/api/internal/job-order-intake"
   },
   "compatibility_flags": [
     "nodejs_compat"
