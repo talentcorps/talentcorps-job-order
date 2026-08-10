@@ -1158,13 +1158,19 @@ export function JobOrderFormWizard(props: {
 
     drawSection("Contacts", [
       ["Primary", fit(`${nextOrder.contacts.primary.name || "-"} (${nextOrder.contacts.primary.title || "-"}) | ${nextOrder.contacts.primary.email || "-"}`)],
+      ["Primary Phone", fit(nextOrder.contacts.primary.phone || "-")],
       ["Supervisor", fit(`${nextOrder.contacts.supervisor.name || "-"} (${nextOrder.contacts.supervisor.title || "-"}) | ${nextOrder.contacts.supervisor.email || "-"}`)],
+      ["Supervisor Phone", fit(nextOrder.contacts.supervisor.phone || "-")],
       ["Timesheet", fit(`${nextOrder.contacts.timesheet.name || "-"} (${nextOrder.contacts.timesheet.title || "-"}) | ${nextOrder.contacts.timesheet.email || "-"}`)],
+      ["Timesheet Phone", fit(nextOrder.contacts.timesheet.phone || "-")],
       ["General Contractor", fit(`${nextOrder.contacts.generalContractor.name || "-"} | ${nextOrder.contacts.generalContractor.phone || "-"}`)],
       ["GC Address", fit(nextOrder.contacts.gcAddress || "-")],
       ["Accounting", fit(`${nextOrder.contacts.accounting.name || "-"} (${nextOrder.contacts.accounting.title || "-"}) | ${nextOrder.contacts.accounting.email || "-"}`)],
+      ["Accounting Phone", fit(nextOrder.contacts.accounting.phone || "-")],
       ["Safety", fit(`${nextOrder.contacts.safety.name || "-"} (${nextOrder.contacts.safety.title || "-"}) | ${nextOrder.contacts.safety.email || "-"}`)],
+      ["Safety Phone", fit(nextOrder.contacts.safety.phone || "-")],
       ["Other Contact", fit(`${nextOrder.contacts.otherContact.name || "-"} (${nextOrder.contacts.otherContact.title || "-"}) | ${nextOrder.contacts.otherContact.email || "-"}`)],
+      ["Other Contact Phone", fit(nextOrder.contacts.otherContact.phone || "-")],
     ]);
 
     const longJobDescriptionAttachments: Array<{ title: string; body: string }> = [];
