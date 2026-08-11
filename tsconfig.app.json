@@ -18,5 +18,8 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  // The submit relay runs on the Workers runtime, not in the browser: no DOM,
+  // different globals. It is type-checked by tsconfig.worker.json instead.
+  "exclude": ["src/worker.ts"]
 }
