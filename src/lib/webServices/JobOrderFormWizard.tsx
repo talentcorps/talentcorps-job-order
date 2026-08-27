@@ -238,7 +238,7 @@ export function JobOrderFormWizard(props: {
   const [pdfError, setPdfError] = useState("");
   const [pdfResultUrl, setPdfResultUrl] = useState("");
   const [pdfResultMode, setPdfResultMode] = useState<"remote" | "local" | "">("");
-  const [brandLogoSrc, setBrandLogoSrc] = useState("/assets/tc-logo.png");
+  const [brandLogoSrc, setBrandLogoSrc] = useState("/assets/tc-logo.png?v=20260827");
   const [deviceLocation, setDeviceLocation] = useState<DeviceLocation | null>(null);
   const [jobSiteQuery, setJobSiteQuery] = useState("");
   const [submitBanner, setSubmitBanner] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -934,7 +934,7 @@ export function JobOrderFormWizard(props: {
     let headerInset = 72;
 
     try {
-      const logoRes = await fetch("/assets/tc-logo.png", { cache: "no-store" });
+      const logoRes = await fetch("/assets/tc-logo.png?v=20260827", { cache: "no-store" });
       if (logoRes.ok) {
         const logoBytes = await logoRes.arrayBuffer();
         const logo = await pdf.embedPng(logoBytes);
@@ -1546,7 +1546,7 @@ export function JobOrderFormWizard(props: {
               src={brandLogoSrc}
               alt="Talent Corps"
               className="job-order-hero-logo"
-              onError={() => setBrandLogoSrc("/assets/company-logo.svg")}
+              onError={() => setBrandLogoSrc("/assets/company-logo.svg?v=20260827")}
             />
           </a>
           <div>
