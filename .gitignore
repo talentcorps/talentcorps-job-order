@@ -8,3 +8,9 @@ dist
 .dev.vars*
 !.dev.vars.example
 !.env.example
+
+# Committed on purpose: non-secret production build config. Without it the prod
+# build is not reproducible from the repo — api.ts throws when
+# VITE_JOB_ORDER_SUBMIT_URL is unset, so a redeploy by anyone but the last
+# deployer silently breaks submit. See the header comment in the file.
+!.env.production
