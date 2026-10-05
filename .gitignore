@@ -8,3 +8,5 @@ dist
 .dev.vars*
 !.dev.vars.example
 !.env.example
+# Local helper scripts (never /tmp) — see CLAUDE.md Security
+.scratch/
