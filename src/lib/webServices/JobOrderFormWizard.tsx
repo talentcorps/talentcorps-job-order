@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { createEmptyJobOrder, type JobOrder, type LaborPosition, type VariablePayRate } from "./jobOrder/types";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { createEmptyJobOrder, type Contact, type JobOrder, type LaborPosition, type VariablePayRate } from "./jobOrder/types";
 import { type ValidationIssue, validateJobOrder } from "./jobOrder/validation";
 import { generateJobOrderPdf } from "./jobOrder/api";
+import { type LinkableContactRole, type LinkedContactRoles, setContactLinked, syncLinkedContacts } from "./jobOrder/sameAsPrimary";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 type UploadState = {
@@ -346,8 +347,48 @@ export function JobOrderFormWizard(props: {
     order.contacts.otherContact.email?.trim()
   );
 
+  // "Same as primary" per additional contact block. Kept off the order so the
+  // payload still carries one set of fields per role (see sameAsPrimary.ts).
+  const [linkedContacts, setLinkedContacts] = useState<LinkedContactRoles>({});
+  const linkedContactsRef = useRef<LinkedContactRoles>({});
+
   const updateOrder = (updater: (next: JobOrder) => JobOrder) => {
-    setOrder((prev) => updater(prev));
+    setOrder((prev) => syncLinkedContacts(updater(prev), linkedContactsRef.current));
+  };
+
+  const toggleContactLinked = (role: LinkableContactRole, on: boolean) => {
+    const prevLinked = linkedContactsRef.current;
+    const next = setContactLinked(order, prevLinked, role, on).linked;
+    linkedContactsRef.current = next;
+    setLinkedContacts(next);
+    setOrder((prev) => setContactLinked(prev, prevLinked, role, on).order);
+  };
+
+  const renderLinkedContactFields = (role: LinkableContactRole, label: string, nested: boolean, extra?: ReactNode) => {
+    const isLinked = Boolean(linkedContacts[role]);
+    const contact = order.contacts[role];
+    const setField = (field: keyof Contact, value: string) =>
+      updateOrder((p) => ({ ...p, contacts: { ...p.contacts, [role]: { ...p.contacts[role], [field]: value } } }));
+    const inputClass = isLinked ? "crm-input pay-result-input" : "crm-input";
+    return (
+      <>
+        <label className="crm-row" style={{ gap: 8, marginTop: nested ? 8 : 0, marginBottom: 8 }}>
+          <input
+            data-field={`contacts.${role}.sameAsPrimary`}
+            type="checkbox"
+            checked={isLinked}
+            onChange={(e) => toggleContactLinked(role, e.target.checked)}
+          /> Same as primary
+        </label>
+        <div className="contacts-fields-grid">
+          <input className={inputClass} placeholder={`${label} Name`} value={contact.name} readOnly={isLinked} onChange={(e) => setField("name", e.target.value)} />
+          <input className={inputClass} placeholder={`${label} Title`} value={contact.title || ""} readOnly={isLinked} onChange={(e) => setField("title", e.target.value)} />
+          <input className={inputClass} type="tel" placeholder={`${label} Phone`} value={contact.phone} readOnly={isLinked} onChange={(e) => setField("phone", e.target.value)} />
+          <input className={inputClass} type="email" placeholder={`${label} Email`} value={contact.email} readOnly={isLinked} onChange={(e) => setField("email", e.target.value)} />
+          {extra}
+        </div>
+      </>
+    );
   };
 
   useEffect(() => {
@@ -1877,12 +1918,7 @@ export function JobOrderFormWizard(props: {
 
             <div className="crm-card contacts-group contacts-group-primary">
               <h4 className="crm-section-title" style={{ fontSize: 15, marginBottom: 10 }}>Site Supervisor</h4>
-              <div className="contacts-fields-grid">
-                <input className="crm-input" placeholder="Site Supervisor Name" value={order.contacts.supervisor.name} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, supervisor: { ...p.contacts.supervisor, name: e.target.value } } }))} />
-                <input className="crm-input" placeholder="Site Supervisor Title" value={order.contacts.supervisor.title || ""} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, supervisor: { ...p.contacts.supervisor, title: e.target.value } } }))} />
-                <input className="crm-input" placeholder="Site Supervisor Phone" value={order.contacts.supervisor.phone} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, supervisor: { ...p.contacts.supervisor, phone: e.target.value } } }))} />
-                <input className="crm-input" placeholder="Site Supervisor Email" value={order.contacts.supervisor.email} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, supervisor: { ...p.contacts.supervisor, email: e.target.value } } }))} />
-              </div>
+              {renderLinkedContactFields("supervisor", "Site Supervisor", false)}
             </div>
 
             <div className="crm-card contacts-group contacts-group-secondary">
@@ -1891,21 +1927,12 @@ export function JobOrderFormWizard(props: {
 
               <details className="contacts-disclosure" open={hasTimesheetValues}>
                 <summary className="contacts-disclosure-summary">Timesheet Contact</summary>
-                <div className="contacts-fields-grid" style={{ marginTop: 8 }}>
-                  <input className="crm-input" placeholder="Timesheet Contact Name" value={order.contacts.timesheet.name} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, timesheet: { ...p.contacts.timesheet, name: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="Timesheet Contact Title" value={order.contacts.timesheet.title || ""} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, timesheet: { ...p.contacts.timesheet, title: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="Timesheet Contact Phone" value={order.contacts.timesheet.phone} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, timesheet: { ...p.contacts.timesheet, phone: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="Timesheet Contact Email" value={order.contacts.timesheet.email} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, timesheet: { ...p.contacts.timesheet, email: e.target.value } } }))} />
-                </div>
+                {renderLinkedContactFields("timesheet", "Timesheet Contact", true)}
               </details>
 
               <details className="contacts-disclosure" open={hasGeneralContractorValues}>
                 <summary className="contacts-disclosure-summary">General Contractor</summary>
-                <div className="contacts-fields-grid" style={{ marginTop: 8 }}>
-                  <input className="crm-input" placeholder="General Contractor Name" value={order.contacts.generalContractor.name} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, generalContractor: { ...p.contacts.generalContractor, name: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="General Contractor Title" value={order.contacts.generalContractor.title || ""} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, generalContractor: { ...p.contacts.generalContractor, title: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="General Contractor Phone" value={order.contacts.generalContractor.phone} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, generalContractor: { ...p.contacts.generalContractor, phone: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="General Contractor Email" value={order.contacts.generalContractor.email} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, generalContractor: { ...p.contacts.generalContractor, email: e.target.value } } }))} />
+                {renderLinkedContactFields("generalContractor", "General Contractor", true, (
                   <input
                     data-field="contacts.gcAddress"
                     ref={gcAddressInputRef}
@@ -1918,7 +1945,7 @@ export function JobOrderFormWizard(props: {
                       updateOrder((p) => ({ ...p, contacts: { ...p.contacts, gcAddress: value } }));
                     }}
                   />
-                </div>
+                ))}
 
                 {gcAddressCandidates.length > 0 ? (
                   <div className="crm-card" style={{ marginTop: 8, padding: 8 }}>
@@ -1942,32 +1969,17 @@ export function JobOrderFormWizard(props: {
 
               <details className="contacts-disclosure" open={hasAccountingValues}>
                 <summary className="contacts-disclosure-summary">Accounting Contact</summary>
-                <div className="contacts-fields-grid" style={{ marginTop: 8 }}>
-                  <input className="crm-input" placeholder="Accounting Contact Name" value={order.contacts.accounting.name} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, accounting: { ...p.contacts.accounting, name: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="Accounting Contact Title" value={order.contacts.accounting.title || ""} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, accounting: { ...p.contacts.accounting, title: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="Accounting Contact Phone" value={order.contacts.accounting.phone} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, accounting: { ...p.contacts.accounting, phone: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="Accounting Contact Email" value={order.contacts.accounting.email} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, accounting: { ...p.contacts.accounting, email: e.target.value } } }))} />
-                </div>
+                {renderLinkedContactFields("accounting", "Accounting Contact", true)}
               </details>
 
               <details className="contacts-disclosure" open={hasSafetyValues}>
                 <summary className="contacts-disclosure-summary">Safety Contact</summary>
-                <div className="contacts-fields-grid" style={{ marginTop: 8 }}>
-                  <input className="crm-input" placeholder="Safety Contact Name" value={order.contacts.safety.name} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, safety: { ...p.contacts.safety, name: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="Safety Contact Title" value={order.contacts.safety.title || ""} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, safety: { ...p.contacts.safety, title: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="Safety Contact Phone" value={order.contacts.safety.phone} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, safety: { ...p.contacts.safety, phone: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="Safety Contact Email" value={order.contacts.safety.email} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, safety: { ...p.contacts.safety, email: e.target.value } } }))} />
-                </div>
+                {renderLinkedContactFields("safety", "Safety Contact", true)}
               </details>
 
               <details className="contacts-disclosure" open={hasOtherContactValues}>
                 <summary className="contacts-disclosure-summary">Other Contact</summary>
-                <div className="contacts-fields-grid" style={{ marginTop: 8 }}>
-                  <input className="crm-input" placeholder="Other Contact Name" value={order.contacts.otherContact.name} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, otherContact: { ...p.contacts.otherContact, name: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="Other Contact Title" value={order.contacts.otherContact.title || ""} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, otherContact: { ...p.contacts.otherContact, title: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="Other Contact Phone" value={order.contacts.otherContact.phone} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, otherContact: { ...p.contacts.otherContact, phone: e.target.value } } }))} />
-                  <input className="crm-input" placeholder="Other Contact Email" value={order.contacts.otherContact.email} onChange={(e) => updateOrder((p) => ({ ...p, contacts: { ...p.contacts, otherContact: { ...p.contacts.otherContact, email: e.target.value } } }))} />
-                </div>
+                {renderLinkedContactFields("otherContact", "Other Contact", true)}
               </details>
 
               {!hasPlacesKey ? <p className="crm-muted" style={{ marginTop: 10 }}>{placesUnavailableNotice}</p> : null}
